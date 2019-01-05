@@ -1,3 +1,10 @@
+from abc import ABCMeta, abstractmethod
+from collections import namedtuple
+
+__author__ = 'TimeWz667'
+
+
+State = namedtuple('State', ('Value', 'Time'))
 
 
 class SubProcess(metaclass=ABCMeta):

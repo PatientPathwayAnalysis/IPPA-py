@@ -1,5 +1,6 @@
 from .patient import *
 from .hospital import *
+from .event import *
 
 
 class IPPA:
