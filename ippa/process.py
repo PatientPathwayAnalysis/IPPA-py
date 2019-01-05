@@ -7,7 +7,7 @@ __author__ = 'TimeWz667'
 State = namedtuple('State', ('Value', 'Time'))
 
 
-class SubProcess(metaclass=ABCMeta):
+class Process(metaclass=ABCMeta):
     def __init__(self, timeout):
         self.TimeOut = timeout
         self.TimeOutOffset = 0
@@ -16,19 +16,16 @@ class SubProcess(metaclass=ABCMeta):
         self.History = None
 
     @property
-    @abstractmethod
-    def DefaultEvent(self):
-        pass
+    def DefaultState(self):
+        return 'None'
 
     @property
-    @abstractmethod
-    def EndEvent(self):
-        pass
+    def EndState(self):
+        return 'Lost'
 
     @property
-    @abstractmethod
-    def DeadEvent(self):
-        pass
+    def DeadState(self):
+        return 'Dead'
 
     def is_time_out(self, ti):
         return self.WaitUntil < ti
@@ -38,13 +35,13 @@ class SubProcess(metaclass=ABCMeta):
         return self.LastEvtTime + self.TimeOutOffset + self.TimeOut
 
     def progress(self, state, ti):
-        if state is not self.LastEvt.Value:
+        if state != self.LastEvt.Value:
             self.LastEvt = State(state, ti)
             self.History.append(self.LastEvt)
         self.LastEvtTime = ti
 
     def start(self):
-        self.LastEvt = State(self.DefaultEvent, 0)
+        self.LastEvt = State(self.DefaultState, 0)
         self.History = [self.LastEvt]
         self.LastEvtTime = 0
 
@@ -69,23 +66,23 @@ class SubProcess(metaclass=ABCMeta):
         pass
 
     def time_out(self):
-        if self.LastEvt.Value is not self.DefaultEvent:
-            self.progress(self.DefaultEvent, self.WaitUntil)
+        if self.LastEvt.Value != self.DefaultState:
+            self.progress(self.DefaultState, self.WaitUntil)
             return True
         return False
 
     def end(self, ti):
         if self.is_time_out(ti):
             self.time_out()
-        self.progress(self.EndEvent, ti)
+        self.progress(self.EndState, ti)
 
     def die(self, ti):
         if self.is_time_out(ti):
             self.time_out()
-        self.progress(self.DeadEvent, ti)
+        self.progress(self.DeadState, ti)
 
     def at(self, ti):
-        evt = self.DefaultEvent
+        evt = self.DefaultState
         for h in self.History:
             if h.Time <= ti:
                 evt = h.Value

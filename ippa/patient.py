@@ -19,7 +19,6 @@ class Patient:
 
         self.Attributes = dict(attributes)
         self.Records = list()
-        self.CollectedRecords = list()
         self.Episodes = dict()
         self.Pathways = dict()
 
@@ -116,7 +115,6 @@ def patients_from_data_frame(patients, p_id='ID', p_leave='OUT_DAY', p_attribute
             d = PatientByYear(i, d.iloc[1, ][p_leave], {r[by_year]: r[p_attributes] for _, r in d.iterrows()})
             ps.append(d)
         return ps
-
 
 
 def patients_from_json(patients, p_id='ID', p_leave='OUT_DAY', p_attributes=None):
