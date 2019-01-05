@@ -47,7 +47,7 @@ class Hospital:
         return 'Hospital {} in Level {}'.format(self.ID, self.Level)
 
 
-def hospitals_from_data_frame(hospitals, h_id='HOSP_ID', h_level='LEVEL', h_attributes=None):
+def hospitals_from_data_frame(hospitals, h_id='HOSP_ID', h_level='Level', h_attributes=None):
     """
     Read hospitals from a pandas DataFrame
     :param hospitals: DataFrame of hospitals
@@ -65,6 +65,6 @@ def hospitals_from_data_frame(hospitals, h_id='HOSP_ID', h_level='LEVEL', h_attr
     return [Hospital(h[h_id], h[h_level], h[h_attributes]) for _, h in hospitals.iterrows()]
 
 
-def hospitals_from_json(hospitals, h_id='HOSP_ID', h_level='LEVEL', h_attributes=None):
+def hospitals_from_json(hospitals, h_id='HOSP_ID', h_level='Level', h_attributes=None):
     # todo
     pass
