@@ -1,8 +1,14 @@
+from collections import OrderedDict
 from .patient import patients_from_data_frame, patients_from_json
 from .hospital import hospitals_from_data_frame, hospitals_from_json
 from .event import EventReader
 from .record import Record
 from .process import Process
+from .episode import Episode
+from .observation import Observation
+from .fn import *
+
+__all__ = ['IPPA', 'Process', 'Observation']
 
 
 class IPPA:
@@ -14,6 +20,11 @@ class IPPA:
         self.DfRecords = None
         self.IndRecords = None
         self.EventReader = EventReader(title)
+        self.Processes = OrderedDict()
+        self.EpisodeFilter = None
+        self.AnchorReader = None
+        self.PathwayMaker = None
+        self.Observer = None
 
     def input_patients(self, patients, p_id='ID', p_leave='OUT_DAY', p_attributes=None, by_year=False):
         ps = patients_from_data_frame(patients,
@@ -58,29 +69,49 @@ class IPPA:
             i = self.H_ID[i]
         return self.Hospitals[i]
 
-    def define_ordered_event(self, tp, fn):
-        pass
-
     def add_process(self, name, sp):
-        pass
+        self.Processes[name] = sp
+
+    def reset_timeout(self, tos):
+        if isinstance(tos, dict):
+            for k, t in tos.items():
+                self.Processes[k].TimeOut = t
+        else:
+            for v in self.Processes.values():
+                v.TimeOut = tos
 
     def define_episode_filter(self, fn):
+        self.EpisodeFilter = fn
+
+    def define_anchor_fn(self, fn):
         pass
 
     def define_pathway_fn(self, fn):
+        pass
+
+    def set_observation(self, obs):
         pass
 
     def define_statistics_fn(self, fn):
         pass
 
     def records2events(self):
-        pass
+        if not self.P_ID:
+            raise ValueError('Patients have not loaded')
+        if not self.H_ID:
+            raise ValueError('Hospital have not loaded')
+        if not self.DfRecords:
+            raise ValueError('Records have not loaded')
 
-    def events2processes(self, time_outs):
-        pass
+        for p in self.P_ID:
+            self.get_patient(p)
 
-    def processes2episodes(self):
-        pass
+    def events2processes2episodes(self, read_end):
+        for i in self.P_ID:
+            p = self.get_patient(i)
+            collected, cuts, hist = read_processes(p, self.Processes, read_end)
+            p.Episodes = cut_episodes(p, collected, cuts, hist)
+            p.Episodes = [epi for epi in p.Episodes if self.EpisodeFilter(epi)]
 
     def episodes2pathways(self):
         pass
@@ -97,10 +128,9 @@ class IPPA:
     def hospital2csv(self, file_path):
         pass
 
-    def run_all(self, time_outs, res_json, stats_csv, hosp_csv):
+    def run_all(self, res_json, stats_csv, hosp_csv):
         self.records2events()
-        self.events2processes(time_outs)
-        self.processes2episodes()
+        self.events2processes2episodes()
         self.episodes2pathways()
         self.pathways2statistics()
         self.results2json(res_json)

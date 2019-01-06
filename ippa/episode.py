@@ -4,17 +4,19 @@ __author__ = 'TimeWz667'
 class Episode:
     def __init__(self, i, history, recs):
         self.PatientID = i
-        self.Anchors = None
-        self.Background = None
+        self.Attributes = dict()
         self.History = history
-        self.Observations = None
-        self.Pathway = None
-        self.Statistics = None
         self.Records = recs
+        self.Anchors = None
+        self.Pathway = None
+        self.Observations = None
         self.TimeFrame = (history[0]['Time'], history[-1]['Time'])
 
-    def reform_background(self, reform_cov):
-        self.Background.reform_cov(reform_cov)
+    def __getitem__(self, item):
+        return self.Attributes[item]
+
+    def __setitem__(self, key, value):
+        self.Attributes[key] = value
 
     def to_json(self):
         hist = list()
@@ -23,16 +25,14 @@ class Episode:
 
         return {
             'ID': self.PatientID,
-            'Background': self.Background.to_json(),
+            'Attributes': self.Attributes,
             'History': hist,
             'Observations': self.Observations.to_json(),
-            'Pathway': [{'Time': pa['Time'], 'Stage': pa['Stage'].name} for pa in self.Pathway],
-            'Statistics': self.Statistics
+            'Pathway': [{'Time': pa['Time'], 'Stage': pa['Stage'].name} for pa in self.Pathway]
         }
 
     def to_data(self):
         dat = dict()
         dat['ID'] = self.PatientID
-        dat.update(self.Statistics)
-        dat.update(self.Background.to_json())
+        dat.update(self.Attributes)
         return dat

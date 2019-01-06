@@ -8,6 +8,12 @@ class Treatment(Process):
         self.DrugDayEnd = 0
         self.DrugDayStart = 0
 
+    def start(self):
+        Process.start(self)
+        self.CurrentDrug = None
+        self.DrugDayEnd = 0
+        self.DrugDayStart = 0
+
     def find_new_state(self, events, ti):
         try:
             evt = events['Main']
@@ -23,6 +29,8 @@ class Treatment(Process):
                     if self.LastEvt.Value != '2nd':
                         self.use_drug(drug, ti)
                         return '1st'
+                    else:
+                        return '2nd'
             elif self.LastEvt.Value not in ['1st', '2nd']:
                 self.use_drug(drug, ti)
                 return 'Empirical'
