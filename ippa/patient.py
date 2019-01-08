@@ -20,7 +20,6 @@ class Patient:
         self.Attributes = dict(attributes)
         self.Records = list()
         self.Episodes = dict()
-        self.Pathways = dict()
 
     def leaving_day(self):
         return self.LeavingDay
@@ -46,7 +45,7 @@ class Patient:
         return dat
 
     def __repr__(self):
-        return 'Patient {} with {} records, {} pathways'.format(self.ID, len(self.Records), len(self.Pathways))
+        return 'Patient {} with {} records, {} pathways'.format(self.ID, len(self.Records), len(self.Episodes))
 
 
 class PatientByYear(Patient):

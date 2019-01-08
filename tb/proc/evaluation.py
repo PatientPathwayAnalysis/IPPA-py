@@ -11,12 +11,10 @@ class Evaluation(Process):
             if evt['diag']:
                 return 'Strong'
             elif proc:
-                if proc['H'] > 0:
+                if proc.Types['H'] > 0 or self.LastEvt.Value == 'Strong':
                     return 'Strong'
-                elif self.LastEvt.Value in ['None', 'Weak']:
-                    return 'Weak'
                 else:
-                    return 'Strong'
+                    return 'Weak'
         except KeyError:
             return False
         return False

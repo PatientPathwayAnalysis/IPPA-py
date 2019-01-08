@@ -9,24 +9,24 @@ class Observation(metaclass=ABCMeta):
         self.History = None
         self.LastTime = 0
 
-    def initialise(self, rec):
+    def initialise(self, rec, hos):
         self.LastTime = rec.Time
         self.Status = dict()
-        self.read_record(rec)
+        self.read_record(rec.SourceData, hos)
         self.History = list()
         self.push_record()
 
-    def update(self, rec):
+    def update(self, rec, hos):
         self.LastTime = rec.Time
-        self.update_record(rec)
+        self.update_record(rec.SourceData, hos)
         self.push_record()
 
     @abstractmethod
-    def read_record(self, rec):
+    def read_record(self, dat, hos):
         pass
 
     @abstractmethod
-    def update_record(self, rec):
+    def update_record(self, dat, hos):
         pass
 
     def push_record(self):
@@ -35,11 +35,3 @@ class Observation(metaclass=ABCMeta):
 
     def to_json(self):
         return self.History
-
-
-def read_observations(episode, obs):
-    recs = episode.Records
-    obs.initialise(recs[0])
-    for rec in recs[1:]:
-        obs.update(rec)
-    return obs

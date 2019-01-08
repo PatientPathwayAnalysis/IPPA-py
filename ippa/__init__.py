@@ -21,10 +21,13 @@ class IPPA:
         self.IndRecords = None
         self.EventReader = EventReader(title)
         self.Processes = OrderedDict()
+        self.EpisodeEnd = 10000
         self.EpisodeFilter = None
         self.AnchorReader = None
         self.PathwayMaker = None
+        self.EventCount = None
         self.Observer = None
+        self.Summariser = None
 
     def input_patients(self, patients, p_id='ID', p_leave='OUT_DAY', p_attributes=None, by_year=False):
         ps = patients_from_data_frame(patients,
@@ -80,20 +83,23 @@ class IPPA:
             for v in self.Processes.values():
                 v.TimeOut = tos
 
-    def define_episode_filter(self, fn):
-        self.EpisodeFilter = fn
+    def define_episode_filter(self, f):
+        self.EpisodeFilter = f
 
-    def define_anchor_fn(self, fn):
-        pass
+    def define_anchor_fn(self, f):
+        self.AnchorReader = f
 
-    def define_pathway_fn(self, fn):
-        pass
+    def define_pathway_fn(self, f):
+        self.PathwayMaker = f
+
+    def define_event_count(self, f):
+        self.EventCount = f
 
     def set_observation(self, obs):
-        pass
+        self.Observer = obs
 
-    def define_statistics_fn(self, fn):
-        pass
+    def define_statistics_fn(self, f):
+        self.Summariser = f
 
     def records2events(self):
         if not self.P_ID:
@@ -107,6 +113,7 @@ class IPPA:
             self.get_patient(p)
 
     def events2processes2episodes(self, read_end):
+        self.EpisodeEnd = read_end
         for i in self.P_ID:
             p = self.get_patient(i)
             collected, cuts, hist = read_processes(p, self.Processes, read_end)
@@ -114,10 +121,33 @@ class IPPA:
             p.Episodes = [epi for epi in p.Episodes if self.EpisodeFilter(epi)]
 
     def episodes2pathways(self):
-        pass
+        for i in self.P_ID:
+            p = self.get_patient(i)
+            for epi in p.Episodes:
+                epi.Anchors = self.AnchorReader(epi, self.EpisodeEnd)
+                epi.Pathway = self.PathwayMaker(epi)
+
+    def link_hospitals(self):
+        for p in self.P_ID:
+            p = self.get_patient(p)
+            for epi in p.Episodes:
+                for rec in epi.Records:
+                    hos = self.get_hospital(rec.Hospital)
+                    hos.count()
+                    self.EventCount(rec, hos)
 
     def pathways2statistics(self):
-        pass
+        for i in self.P_ID:
+            p = self.get_patient(i)
+            for epi in p.Episodes:
+                recs = epi.Records
+                hos = self.get_hospital(recs[0].Hospital)
+                self.Observer.initialise(recs[0], hos)
+                for rec in recs[1:]:
+                    hos = self.get_hospital(rec.Hospital)
+                    self.Observer.update(rec, hos)
+                epi.Observations = self.Observer.History
+                epi.Attributes.update(self.Summariser(epi))
 
     def results2json(self, file_path):
         pass
@@ -128,9 +158,9 @@ class IPPA:
     def hospital2csv(self, file_path):
         pass
 
-    def run_all(self, res_json, stats_csv, hosp_csv):
-        self.records2events()
-        self.events2processes2episodes()
+    def run_all(self, read_end, res_json, stats_csv, hosp_csv):
+        # self.records2events()
+        self.events2processes2episodes(read_end)
         self.episodes2pathways()
         self.pathways2statistics()
         self.results2json(res_json)

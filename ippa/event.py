@@ -16,7 +16,7 @@ class DigitSum:
 class Event:
     def __init__(self, tp, **kwargs):
         self.Type = tp
-        self.Attributes = {k: v for k, v in kwargs.items() if v} if kwargs else None
+        self.Attributes = {k: v for k, v in kwargs.items()} if kwargs else None
 
     def __getitem__(self, item):
         return self.Attributes[item]
