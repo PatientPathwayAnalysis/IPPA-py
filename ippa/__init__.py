@@ -1,4 +1,7 @@
 from collections import OrderedDict
+import json
+import pandas as pd
+import numpy as np
 from .patient import patients_from_data_frame, patients_from_json
 from .hospital import hospitals_from_data_frame, hospitals_from_json
 from .event import EventReader
@@ -12,6 +15,17 @@ __all__ = ['IPPA', 'Process', 'Observation']
 
 
 class IPPA:
+    class Encoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, np.integer):
+                return int(obj)
+            elif isinstance(obj, np.floating):
+                return float(obj)
+            elif isinstance(obj, np.ndarray):
+                return obj.tolist()
+            else:
+                return super(IPPA.Encoder, self).default(obj)
+
     def __init__(self, title):
         self.Patients = None
         self.P_ID = None
@@ -149,20 +163,43 @@ class IPPA:
                 epi.Observations = self.Observer.History
                 epi.Attributes.update(self.Summariser(epi))
 
+            append_comorbidity(p)
+
     def results2json(self, file_path):
-        pass
+        ps = list()
+
+        for p in self.Patients.values():
+            if p.Episodes:
+                ps += p.get_episode_json()
+
+        output_json = {
+            'Episode': ps,
+            'Hospital': [h.to_json() for h in self.Hospitals.values() if h.Counts]
+        }
+
+        with open(file_path, 'w') as outfile:
+            json.dump(output_json, outfile, cls=IPPA.Encoder)
 
     def statistics2csv(self, file_path):
-        pass
+        ps = list()
+        for p in self.Patients.values():
+            if p.Episodes:
+                ps += p.get_episode_data()
+        df = pd.DataFrame(ps)
+        df = df.fillna(0)
+        df.to_csv(file_path)
 
     def hospital2csv(self, file_path):
-        pass
+        df = pd.DataFrame([h.to_data() for h in self.Hospitals.values() if h.Counts])
+        df = df.fillna(0)
+        df.to_csv(file_path)
 
     def run_all(self, read_end, res_json, stats_csv, hosp_csv):
         # self.records2events()
         self.events2processes2episodes(read_end)
         self.episodes2pathways()
         self.pathways2statistics()
+        self.link_hospitals()
         self.results2json(res_json)
         self.statistics2csv(stats_csv)
         self.hospital2csv(hosp_csv)

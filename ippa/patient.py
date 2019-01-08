@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 __author__ = "TimeWz667"
 
 
@@ -44,6 +46,22 @@ class Patient:
         dat.update(self.Attributes)
         return dat
 
+    def get_episode_json(self):
+        episodes = list()
+        for epi in self.Episodes:
+            dat = epi.to_json()
+            dat['Attributes'].update(self.Attributes)
+            episodes.append(dat)
+        return episodes
+
+    def get_episode_data(self):
+        episodes = list()
+        for epi in self.Episodes:
+            dat = OrderedDict(self.to_data())
+            dat.update(epi.Attributes)
+            episodes.append(dat)
+        return episodes
+
     def __repr__(self):
         return 'Patient {} with {} records, {} pathways'.format(self.ID, len(self.Records), len(self.Episodes))
 
@@ -83,6 +101,22 @@ class PatientByYear(Patient):
         dat.update(self.Attributes[yr])
         return dat
 
+    def get_episode_json(self):
+        episodes = list()
+        for epi in self.Episodes:
+            dat = epi.to_json()
+            dat['Attributes'].update(self.Attributes[epi.Attributes['YearStart']])
+            episodes.append(dat)
+        return episodes
+
+    def get_episode_data(self):
+        episodes = list()
+        for epi in self.Episodes:
+            dat = OrderedDict(self.to_data_in_year(epi.Attributes['YearStart']))
+            dat.update(epi.Attributes)
+            episodes.append(dat)
+        return episodes
+
 
 def patients_from_data_frame(patients, p_id='ID', p_leave='OUT_DAY', p_attributes=None, by_year=False):
     """
@@ -119,3 +153,4 @@ def patients_from_data_frame(patients, p_id='ID', p_leave='OUT_DAY', p_attribute
 def patients_from_json(patients, p_id='ID', p_leave='OUT_DAY', p_attributes=None):
     # todo
     pass
+

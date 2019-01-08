@@ -61,3 +61,19 @@ def cut_episodes(patient, collected, cuts, history):
     es.append(Episode(patient.ID, hs, recs))
     return es
 
+
+def append_comorbidity(patient):
+    hist = dict()
+
+    for rec in patient.Records:
+        try:
+            com = rec.Events['Comorbidity']
+            for c in com:
+                if c.Type not in hist:
+                    hist[c.Type] = rec.Time
+        except KeyError:
+            pass
+
+    for epi in patient.Episodes:
+        ti = epi.TimeFrame[0]
+        epi.Attributes.update({k: int(v < ti) for k, v in hist.items()})

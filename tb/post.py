@@ -13,7 +13,7 @@ def count_event(rec, hos):
         if proc:
             if proc.Types['H']:
                 hos.count('EH-TB')
-            elif proc.Types['L']:
+            if proc.Types['L']:
                 hos.count('EL-TB')
     except KeyError:
         return
@@ -33,7 +33,7 @@ def summary(episode):
 
     statistics['StageStart'] = anc['StartEvent'].name
     statistics['YearStart'] = (datetime.timedelta(days=stage_starts['Waiting']) + day0).year
-    statistics['Cross2003'] = statistics['YearStart'] < 2004
+    statistics['Cross2003'] = int(statistics['YearStart'] < 2004)
 
     statistics.update({'Day{}'.format(k): v for k, v in stage_starts.items()})
     statistics['DayStart'] = statistics['DayWaiting']
@@ -57,8 +57,10 @@ def summary(episode):
         ot = ro[i + 1]
 
         statistics[stage + 'Level'] = of['Level']
-        statistics[stage + 'Sector'] = of['Sector']
-        statistics[stage + 'InOut'] = of['InOut']
+        if 'Sector' in of:
+            statistics[stage + 'Sector'] = of['Sector']
+        if 'InOut' in of:
+            statistics[stage + 'InOut'] = of['InOut']
         statistics[stage + 'Visits'] = ot['Visits'] - of['Visits']
         statistics[stage + 'Patient_Cost'] = ot['Patient_Cost'] - of['Patient_Cost']
         statistics[stage + 'System_Cost'] = ot['System_Cost'] - of['System_Cost']
@@ -74,3 +76,25 @@ def summary(episode):
     statistics['PostCheck'] = int(len(post) > 1)
 
     return statistics
+
+
+def find_arrival_timing(ctrl, episode):
+    tr = episode.Attributes['DayTreating']
+
+    for rec in episode.Records:
+        if rec.Time is tr:
+            hos = rec.Hospital
+            break
+    else:
+        hos = episode.Records[-1].Hospital
+
+    for rec in episode.Records:
+        hv = ctrl.get_hospital(rec.Hospital)
+        if hv['Anti-TB'] > 0:
+            episode.Attributes['DayTreatmentAva'] = rec.Time
+            break
+
+    for rec in episode.Records:
+        if rec.Hospital == hos:
+            episode.Attributes['DayTreatmentHosp'] = rec.Time
+            break

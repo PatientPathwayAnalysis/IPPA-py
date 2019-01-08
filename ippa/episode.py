@@ -1,3 +1,4 @@
+import enum
 __author__ = 'TimeWz667'
 
 
@@ -21,14 +22,19 @@ class Episode:
     def to_json(self):
         hist = list()
         for his in self.History:
-            hist.append({k: (v.name if k is not 'Time' else v) for k, v in his.items()})
+            hist.append({k: (v if k is not 'Time' else v) for k, v in his.items()})
+        
+        if isinstance(self.Pathway[0]['Stage'], enum.Enum):
+            ps = [{'Time': pa['Time'], 'Stage': pa['Stage'].name} for pa in self.Pathway]
+        else:
+            ps = [{'Time': pa['Time'], 'Stage': pa['Stage']} for pa in self.Pathway]
 
         return {
             'ID': self.PatientID,
             'Attributes': self.Attributes,
             'History': hist,
-            'Observations': self.Observations.to_json(),
-            'Pathway': [{'Time': pa['Time'], 'Stage': pa['Stage'].name} for pa in self.Pathway]
+            'Observations': self.Observations,
+            'Pathway': ps
         }
 
     def to_data(self):

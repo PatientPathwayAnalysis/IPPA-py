@@ -34,7 +34,7 @@ class Hospital:
             'HID': self.ID,
             'Level': self.Level,
             'Attributes': self.Attributes,
-            'Counts': self.Counts
+            'Counts': dict(self.Counts)
         }
 
     def to_data(self):
