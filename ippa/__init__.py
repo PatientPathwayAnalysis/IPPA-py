@@ -2,6 +2,7 @@ from collections import OrderedDict
 import json
 import pandas as pd
 import numpy as np
+import enum
 from .patient import patients_from_data_frame, patients_from_json
 from .hospital import hospitals_from_data_frame, hospitals_from_json
 from .event import EventReader
@@ -23,6 +24,8 @@ class IPPA:
                 return float(obj)
             elif isinstance(obj, np.ndarray):
                 return obj.tolist()
+            elif isinstance(obj, enum.Enum):
+                return obj.name
             else:
                 return super(IPPA.Encoder, self).default(obj)
 
@@ -39,6 +42,7 @@ class IPPA:
         self.EpisodeFilter = None
         self.AnchorReader = None
         self.PathwayMaker = None
+        self.PathwayFilter = None
         self.EventCount = None
         self.Observer = None
         self.Summariser = None
@@ -109,6 +113,9 @@ class IPPA:
     def define_event_count(self, f):
         self.EventCount = f
 
+    def define_pathway_filter(self, f):
+        self.PathwayFilter = f
+
     def set_observation(self, obs):
         self.Observer = obs
 
@@ -144,11 +151,14 @@ class IPPA:
     def link_hospitals(self):
         for p in self.P_ID:
             p = self.get_patient(p)
-            for epi in p.Episodes:
-                for rec in epi.Records:
-                    hos = self.get_hospital(rec.Hospital)
-                    hos.count()
-                    self.EventCount(rec, hos)
+            for rec in p.Records:
+                hos = self.get_hospital(rec.Hospital)
+                hos.count()
+                self.EventCount(rec, hos)
+
+    def clear_hospitals(self):
+        for h in self.Hospitals.values():
+            h.clear()
 
     def pathways2statistics(self):
         for i in self.P_ID:
@@ -162,7 +172,7 @@ class IPPA:
                     self.Observer.update(rec, hos)
                 epi.Observations = self.Observer.History
                 epi.Attributes.update(self.Summariser(epi))
-
+            p.Episodes = [epi for epi in p.Episodes if self.PathwayFilter(epi)]
             append_comorbidity(p)
 
     def results2json(self, file_path):

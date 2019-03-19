@@ -31,9 +31,10 @@ def summary(episode):
     stage_starts['Treating'] = anc['ConfirmationTime']
     stage_starts['TreatmentEnd'] = anc['TreatmentEnd']
 
+    statistics['HospitalStart'] = episode.Records[0].Hospital
     statistics['StageStart'] = anc['StartEvent'].name
     statistics['YearStart'] = (datetime.timedelta(days=stage_starts['Waiting']) + day0).year
-    statistics['Cross2003'] = int(statistics['YearStart'] < 2004)
+    # statistics['Cross2003'] = int(statistics['YearStart'] < 2004)
 
     statistics.update({'Day{}'.format(k): v for k, v in stage_starts.items()})
     statistics['DayStart'] = statistics['DayWaiting']
@@ -68,12 +69,12 @@ def summary(episode):
     stages = set([p['Stage'] for p in episode.Pathway])
     ts = set([h['Tre'] for h in episode.History])
 
-    post = set([h['Eva'] for h in episode.History if h['Time'] >= anc['TreatmentEnd']])
+    # post = set([h['Eva'] for h in episode.History if h['Time'] >= anc['TreatmentEnd']])
 
     statistics['Empirical'] = int('Empirical' in ts)
     statistics['InterruptedEvaluation'] = int(TBStage.IE in stages)
     statistics['TreatmentChange'] = int(TBStage.TC in stages)
-    statistics['PostCheck'] = int(len(post) > 1)
+    # statistics['PostCheck'] = int(len(post) > 1)
 
     return statistics
 

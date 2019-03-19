@@ -29,6 +29,9 @@ class Hospital:
         """
         self.Counts[event] += 1
 
+    def clear(self):
+        self.Counts = Counter()
+
     def to_json(self):
         return {
             'HID': self.ID,

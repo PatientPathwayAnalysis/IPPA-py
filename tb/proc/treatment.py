@@ -21,18 +21,20 @@ class Treatment(Process):
             if not drug:
                 return False
 
-            if drug.DrugDay >= 14 and drug.DrugAmount >= 2:
+            self.use_drug(drug, ti)
+
+            if drug.DrugDay >= 7 and drug.DrugAmount >= 2:
                 if drug.MainType == '2nd':
-                    self.use_drug(drug, ti)
+                    # self.use_drug(drug, ti)
                     return '2nd'
                 else:
                     if self.LastEvt.Value != '2nd':
-                        self.use_drug(drug, ti)
+                        # self.use_drug(drug, ti)
                         return '1st'
                     else:
                         return '2nd'
             elif self.LastEvt.Value not in ['1st', '2nd']:
-                self.use_drug(drug, ti)
+                # self.use_drug(drug, ti)
                 return 'Empirical'
         except KeyError:
             return False

@@ -15,6 +15,7 @@ class TBStage(Enum):
     TC = auto()
     TREATING_S = auto()
     LOST = auto()
+    EARLY = auto()
     CENSORED = auto()
     COMPLETED = auto()
     DEAD = auto()

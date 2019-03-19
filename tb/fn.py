@@ -2,7 +2,7 @@ from collections import OrderedDict
 from tb.stages import TBStage
 
 
-def is_eligible(episode):
+def is_eligible_episode(episode):
     ser = episode.History
     if [s for s in ser if s['Tre'] in ['1st', '2nd']]:
         return True
@@ -86,12 +86,16 @@ def identify_critical_stages(episode, read_end):
     anchors['Treatments'] = [s for s in ser if anchors['ConfirmationTime'] <= s['Time'] < anchors['TreatmentEnd']]
     anchors['TreatmentPeriod'] = anchors['TreatmentEnd'] - anchors['TreatmentTime']
 
+    # post = set([h['Eva'] for h in episode.History if h['Time'] >= anchors['TreatmentEnd']])
+
     if ser[-1]['Tre'] == 'Dead':
         anchors['Outcome'] = TBStage.DEAD
     elif anchors['TreatmentPeriod'] > 7*4*6:
         anchors['Outcome'] = TBStage.COMPLETED
     elif ser[-1]['Time'] >= read_end:
         anchors['Outcome'] = TBStage.CENSORED
+    # elif len(post) > 1:
+    #    anchors['Outcome'] = TBStage.EARLY
     else:
         anchors['Outcome'] = TBStage.LOST
 
@@ -121,13 +125,11 @@ def form_pathway(episode):
             elif all([eva['Eva'] == 'None', eva['Tre'] == 'None', eva['Pre'] != 'None']):
                 stage = TBStage.IE
                 pat.append({'Time': eva['Time'], 'Stage': stage})
-                los_e = True
 
         elif stage is TBStage.EVALUATING_H:
             if all([eva['Eva'] == 'None', eva['Tre'] == 'None', eva['Pre'] != 'None']):
                 stage = TBStage.IE
                 pat.append({'Time': eva['Time'], 'Stage': stage})
-                los_e = los_d = True
 
         elif stage is TBStage.IE:
             if eva['Eva'] == 'Weak':
@@ -168,12 +170,19 @@ def form_pathway(episode):
                 first = False
 
         else:
-            if tre['Tre'] in ['1st', '2nd']:
+            if tre['Tre'] != 'None':
                 if stage is not TBStage.TREATING_S:
                     stage = TBStage.TREATING_S
                     pat.append({'Time': tre['Time'], 'Stage': stage})
+            elif stage is not TBStage.TC:
+                stage = TBStage.TC
+                pat.append({'Time': tre['Time'], 'Stage': stage})
 
     if stage is TBStage.TC:
         pat.pop()
     pat.append({'Time': anchors['TreatmentEnd'], 'Stage': anchors['Outcome']})
     return pat
+
+
+def is_eligible_pathway(episode):
+    return episode.Attributes['TreatmentPeriod'] >= 28

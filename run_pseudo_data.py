@@ -1,31 +1,13 @@
 import pandas as pd
 import os
-import ippa
 import tb
-from tb.proc import RelatedIllness, Evaluation, Treatment
 
 
-class ObsPseudo(ippa.Observation):
-    def read_record(self, src, hos):
-        self.Status = dict()
-        self.Status['Patient_Cost'] = src.Patient_Cost
-        self.Status['System_Cost'] = src.System_Cost
-        self.Status['Visits'] = 1
-        self.Status['Level'] = hos.Level
-
-    def update_record(self, src, hos):
-        self.Status['Patient_Cost'] += src.Patient_Cost
-        self.Status['System_Cost'] += src.System_Cost
-        self.Status['Visits'] += 1
-        self.Status['Level'] = hos.Level
+# Initialise a new IPPA
+ctrl = tb.IPPA('TB', tor=60, toe=60, tot=30)
 
 
-ctrl = tb.IPPA('TB')
-ctrl.add_process('Pre', RelatedIllness(60))
-ctrl.add_process('Eva', Evaluation(60))
-ctrl.add_process('Tre', Treatment(30))
-ctrl.set_observation(ObsPseudo())
-
+# Set the definition of events
 ER = ctrl.EventReader
 ER.define_disease('TB_DIAG')
 ER.define_procedure('TB_PROC', {'L': list(range(0, 5)), 'H': list(range(5, 9))})
@@ -35,28 +17,36 @@ ER.add_related_disease('ARD', 'RES_DIAG')
 ER.add_related_disease('NTM', 'NTM_DIAG')
 
 
-patients = pd.read_csv('../../Data/PseudoData/Input/IPPA_patients.csv', index_col=0)
+# Set input folder
+folder_i = '../../Data/PseudoData/Input/'
+
+# Read patient data
+patients = pd.read_csv(folder_i + 'IPPA_patients.csv', index_col=0)
 ctrl.input_patients(patients, p_leave='OUT_DAY')
 
 
-hospitals = pd.read_csv('../../Data/PseudoData/Input/IPPA_hospitals.csv', index_col=0)
+# Read hospital data
+hospitals = pd.read_csv(folder_i + 'IPPA_hospitals.csv', index_col=0)
 ctrl.input_hospitals(hospitals, h_level='LEVEL')
 
 
-records = pd.read_csv('../../Data/PseudoData/Input/IPPA_records.csv', index_col=0)
+# Read healthcare records
+records = pd.read_csv(folder_i + 'IPPA_records.csv', index_col=0)
 ctrl.input_records(records, 'ID', 'HOSP_ID', 'DAY')
 
 
+# Run the analysis
 ctrl.events2processes2episodes(read_end=3651)
 ctrl.episodes2pathways()
 ctrl.pathways2statistics()
 ctrl.link_hospitals()
 
 
-folder = 'E:/IPPA/Data/Output/Pseudo/'
-if not os.path.exists(folder):
-    os.makedirs(folder)
+folder_o = "../../Data/Output/Pseudo/"
 
-ctrl.results2json('{}{}'.format(folder, 'pathways.json'))
-ctrl.statistics2csv('{}{}'.format(folder, 'pathways.csv'))
-ctrl.hospital2csv('{}{}'.format(folder, 'hospital.csv'))
+if not os.path.exists(folder_o):
+    os.makedirs(folder_o)
+
+ctrl.results2json(folder_o + 'pathways.json')
+ctrl.statistics2csv(folder_o + 'pathways.csv')
+ctrl.hospital2csv(folder_o + 'hospital.csv')
