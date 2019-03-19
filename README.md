@@ -10,7 +10,7 @@ IPPA-py implements the IPPA in python
 
 
 ## Example data
-see [Pseudo data set]()
+see [Pseudo data set](https://github.com/PatientPathwayAnalysis/IPPA-data/tree/master/Input)
 
 
 ## How to use
@@ -72,9 +72,9 @@ Drugs as well
 
 - **1st** : 1st line anti-TB drugs
 - **2nd** : 2nd line anti-TB drugs, usually more aggressive and higher risk
-- In the example, ****: 0-4, **H**: 5-8
-    - 20100000 implies the patient is under 1st line treatment
-    - 00100210 implies the patient is under 2nd line treatment
+- In the example, ****: 0-4, **H**: 5-7
+    - 2010000 implies the patient is under 1st line treatment
+    - 0010021 implies the patient is under 2nd line treatment
 
 
 ##### Map the columns of comorbidities and the name shown in the results
@@ -110,7 +110,7 @@ ctrl.input_records(records, 'ID', 'HOSP_ID', 'DAY')
 
 ### Step 4. Run the analysis
 
-A live demo of the pathway extract can be found in [LINK]()
+A live demo of the pathway extract can be found in [LINK](https://patientpathwayanalysis.github.io/IPPA-ext-demo/)
 
 ```python
 ctrl.events2processes2episodes(read_end=3651)
@@ -122,7 +122,7 @@ ctrl.link_hospitals()
 
 ### Step 5. Output
 
-The results produced from the pseudo data input can be found in [LINK]()
+The results produced from the pseudo data input can be found in [LINK](https://github.com/PatientPathwayAnalysis/IPPA-data/tree/master/output)
 
 ```python
 ### Set output folder
@@ -140,8 +140,15 @@ ctrl.hospital2csv(folder_o + 'hospital.csv')
 
 The output of this analysis can be 
 - visualised
-    - **json** via  
-    - **csv** via 
+    - [IPPA-d3](https://github.com/PatientPathwayAnalysis/IPPA-d3) 
+        - For **.json** outputs
+        - Using R and ggplot2
+        - For documentation
+           
+    - [IPPA-vis](https://github.com/PatientPathwayAnalysis/IPPA-vis)
+        - For **.csv** outputs 
+        - Using javascript and d3.js
+        - For demonstration and presentation 
 
 - linked to risk factors
     - using the information in "pathways.csv" and "hospital.csv"
