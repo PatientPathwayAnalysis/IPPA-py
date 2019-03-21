@@ -136,19 +136,19 @@ ctrl.statistics2csv(folder_o + 'pathways.csv')
 ctrl.hospital2csv(folder_o + 'hospital.csv')
 ```
 
-## Next
+## Utilise the outputs
 
 The output of this analysis can be 
 - visualised
     - [IPPA-d3](https://github.com/PatientPathwayAnalysis/IPPA-d3) 
-        - For **.json** outputs
-        - Using R and ggplot2
-        - For documentation
-           
-    - [IPPA-vis](https://github.com/PatientPathwayAnalysis/IPPA-vis)
-        - For **.csv** outputs 
+        - Use **.json** outputs
         - Using javascript and d3.js
         - For demonstration and presentation 
+           
+    - [IPPA-vis](https://github.com/PatientPathwayAnalysis/IPPA-vis)
+        - Use both **.json** and  **.csv** outputs
+        - Using R and ggplot2
+        - For documentation
 
 - linked to risk factors
     - using the information in "pathways.csv" and "hospital.csv"
